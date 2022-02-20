@@ -1,0 +1,10 @@
+---
+
+# Don't create a log file
+write_log_file: false
+# Don't overwrite ~/.zshrc or ~/.p10k.zsh files
+# The other possible values are 'zsh-only', 'plus-oh-my-zsh', 'plus-p10k-no-config', 'plus-powerlevel-10k', 'custom'
+# See ZSHRC.md for more details
+zshrc_level: none
+
+...

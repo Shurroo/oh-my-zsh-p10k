@@ -1,0 +1,13 @@
+Your Oh My Zsh and PowerLevel10K configuration is complete.
+If you wish to change any part of your configuration, use any of the listed commands.
+
+Run the Zsh new user script:
+  autoload -Uz zsh-newuser-install
+  zsh-newuser-install -f
+
+Run the PowerLevel10K configuration script:
+  source ~/.zshrc
+  p10k configure
+
+Edit the PowerLevel10K configuration file directly:
+  < editor > ~/.p10k.zsh

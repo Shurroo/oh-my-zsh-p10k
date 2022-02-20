@@ -1,0 +1,215 @@
+---
+
+- name: Fail if not macOS
+  fail:
+    msg: Must be running macOS
+  when:
+    - ansible_os_family != 'Darwin'
+
+- name: Register Homebrew install state
+  stat:
+    path: /usr/local/bin/brew
+  register: homebrew_brew
+
+- name: Fail if Homebrew is not installed
+  fail:
+    msg: No Homebrew at `/usr/local/bin/brew`
+  when:
+    - not homebrew_brew.stat.exists
+
+- name: Register Zsh executable path
+  shell: command -v zsh
+  register: zsh_result
+  changed_when: false
+  failed_when: false
+
+- name: Fail if Zsh is not installed
+  fail:
+    msg: No zsh installed
+  when:
+    - not zsh_result.stdout
+
+- name: Register git install state
+  shell: command -v git
+  register: git_result
+  changed_when: false
+  failed_when: false
+
+- name: Fail if git is not installed
+  fail:
+    msg: No git installed
+  when:
+    - not git_result.stdout
+
+- name: Print user name status
+  debug:
+    msg: "user name = {{ user_name is defined }}"
+    verbosity: 2
+
+- name: Print zsh executable path
+  debug:
+    msg: "zsh executable path = {{ zsh_result.stdout }}"
+    verbosity: 2
+
+- name: Set default shell
+  become: yes
+  user:
+    name: '{{ user_name }}'
+    shell: '{{ zsh_result.stdout }}'
+  when:
+    - user_name is defined
+
+- name: Clone oh-my-zsh
+  git:
+    repo: 'https://github.com/robbyrussell/oh-my-zsh.git'
+    version: master
+    dest: '~/.oh-my-zsh'
+
+- name: Clone powerlevel10k
+  git:
+    repo: 'https://github.com/romkatv/powerlevel10k.git'
+    version: master
+    dest: '~/.oh-my-zsh/custom/themes/powerlevel10k'
+
+- name: Validate zshrc_level value
+  set_fact: action_zshrc_level={{ zshrc_level }}
+  when: zshrc_level in ('none', 'zsh-only', 'plus-oh-my-zsh', 'plus-p10k-no-config', 'plus-powerlevel-10k', 'custom')
+
+- name: Print zshrc level
+  debug:
+    msg: "zshrc level = {{ zshrc_level }}"
+    verbosity: 2
+
+- name: Print action zshrc level
+  debug:
+    msg: "action zshrc level = {{ action_zshrc_level }}"
+    verbosity: 2
+
+- name: Warn if zshrc_level has a bad value
+  fail:
+    msg: "[Warning] Unexpected value '{{ zshrc_level }}' for zshrc_level: no configuration files will be installed"
+  when: action_zshrc_level == "bad_value"
+  ignore_errors: true
+
+- name: Register custom source zshrc
+  stat:
+    path: /Volumes/Shurroo/oh-my-zsh-p10k/.zshrc
+  register: custom_source_zshrc
+  when: action_zshrc_level == "custom"
+
+- name: Print custom source zshrc status
+  debug:
+    msg: "custom source zshrc = {{ custom_source_zshrc is defined }}"
+    verbosity: 2
+
+- name: Warn if missing custom source zshrc
+  fail:
+    msg: "[WARNING] No custom zshrc file found at /Volumes/Shurroo/oh-my-zsh-p10k/.zshrc"
+  when:
+    - action_zshrc_level == "custom"
+    - not custom_source_zshrc.stat.exists
+  ignore_errors: true
+
+- name: Register custom source p10k configuration
+  stat:
+    path: /Volumes/Shurroo/oh-my-zsh-p10k/.p10K.zsh
+  register: custom_source_p10k_zsh
+  when: action_zshrc_level == "custom"
+
+- name: Print custom source p10k configuration status
+  debug:
+    msg: "custom source p10k configuration = {{ custom_source_p10k_zsh is defined }}"
+    verbosity: 2
+
+- name: Warn if missing custom source p10k configuration
+  fail:
+    msg: "[WARNING] No custom p10k configuration file found at /Volumes/Shurroo/oh-my-zsh-p10k/.p10K.zsh"
+  when:
+    - action_zshrc_level == "custom"
+    - not custom_source_p10k_zsh.stat.exists
+  ignore_errors: true
+
+- name: Copy custom source zshrc
+  become: false
+  copy:
+    src: /Volumes/Shurroo/oh-my-zsh-p10k/.zshrc
+    dest: ~/.zshrc
+  when:
+    - action_zshrc_level == "custom"
+    - custom_source_zshrc.stat.exists
+
+- name: Copy custom source p10k configuration
+  become: false
+  copy:
+    src: /Volumes/Shurroo/oh-my-zsh-p10k/.p10K.zsh
+    dest: ~/.p10k.zsh
+  when:
+    - action_zshrc_level == "custom"
+    - custom_source_p10k_zsh.stat.exists
+
+- name: Copy source zsh-only zshrc
+  become: false
+  copy:
+    src: .zshrc.1.zsh-only
+    dest: ~/.zshrc
+  when:
+    - action_zshrc_level == "zsh-only"
+
+- name: Copy source plus-oh-my-zsh zshrc
+  become: false
+  copy:
+    src: .zshrc.2.plus-oh-my-zsh
+    dest: ~/.zshrc
+  when:
+    - action_zshrc_level == "plus-oh-my-zsh"
+
+- name: Copy source plus-p10k-no-config zshrc
+  become: false
+  copy:
+    src: .zshrc.3.plus-p10k-no-config
+    dest: ~/.zshrc
+  when:
+    - action_zshrc_level == "plus-p10k-no-config"
+
+- name: Copy source plus-powerlevel-10k zshrc
+  become: false
+  copy:
+    src: .zshrc.4.plus-powerlevel-10k
+    dest: ~/.zshrc
+  when:
+    - action_zshrc_level == "plus-powerlevel-10k"
+
+- name: Copy source plus-powerlevel-10k p10k configuration
+  become: false
+  copy:
+    src: .p10k.zsh
+    dest: ~/.p10k.zsh
+  when:
+    - action_zshrc_level == "plus-powerlevel-10k"
+
+- name: Log results
+  template:
+    src: oh-my-zsh-p10k.log.j2
+    dest: $HOME/.shurroo/log/oh-my-zsh-p10k-{{ log_time }}.log
+  when: write_log_file
+  changed_when: false
+
+- name: Register log status
+  # Set to "log_no.txt" message in vars
+  # Change to "log_yes.txt" message when write_log_file
+  set_fact: log_status="log_yes.txt"
+  when: write_log_file
+  changed_when: false
+
+- name: Register next steps
+  # Set to "ready_no.txt" message in vars
+  # Change to "ready_yes.txt" message when all conditions are met
+  set_fact: next_steps="ready_yes.txt"
+  when: action_zshrc_level in ('none', 'zsh-only', 'plus-oh-my-zsh', 'plus-p10k-no-config', 'plus-powerlevel-10k') or
+        action_zshrc_level == "custom" and (custom_source_zshrc.stat.exists and custom_source_p10k_zsh.stat.exists)
+
+- name: Next steps
+  debug:
+    msg: "{{ lookup('file', log_status, rstrip=false) }}{{ lookup('file', next_steps, rstrip=false) }}"
+
+...

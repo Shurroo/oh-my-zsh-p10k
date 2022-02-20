@@ -1,0 +1,32 @@
+zshrc level = {{ zshrc_level }}
+action zshrc level = {{ action_zshrc_level }}
+{% if action_zshrc_level == "custom" %}
+custom source zshrc = {{ custom_source_zshrc.stat.exists }}
+custom source p10k configuration = {{ custom_source_p10k_zsh.stat.exists }}
+{% endif %}
+{% if user_name is defined %}
+user name = {{ user_name }}
+default shell = {{ zsh_result.stdout }}
+Your default shell has been changed, and you should now
+log out and back in again for this to take effect.
+{% endif %}
+{% if action_zshrc_level in ('none', 'zsh-only', 'plus-oh-my-zsh', 'plus-p10k-no-config', 'plus-powerlevel-10k') or
+      action_zshrc_level == "custom" and
+      (custom_source_zshrc.stat.exists and custom_source_p10k_zsh.stat.exists) %}
+Your Oh My Zsh and PowerLevel10K configuration is complete.
+If you wish to change any part of your configuration, use any of the listed commands.
+{%  else %}
+Your Oh My Zsh and PowerLevel10K configuration is not complete.
+To complete your configuration, use any of the listed commands.
+{%  endif %}
+
+Run the Zsh new user script:
+  autoload -Uz zsh-newuser-install
+  zsh-newuser-install -f
+
+Run the PowerLevel10K configuration script:
+  source ~/.zshrc
+  p10k configure
+
+Edit the PowerLevel10K configuration file directly:
+  < editor > ~/.p10k.zsh

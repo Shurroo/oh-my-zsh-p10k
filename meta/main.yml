@@ -1,0 +1,38 @@
+---
+# No dependencies
+dependencies: []
+
+galaxy_info:
+  role_name: oh-my-zsh-p10k
+  author: Ian Taylor (IanTaylorFB)
+  description: Component of Shurroo | Installs Oh-My-Zsh and PowerLevel10K and performs basic configuration
+  company: FlyingBinary Ltd
+  # Use SPDX short identifier https://spdx.org/licenses/BSD-3-Clause.html
+  license: BSD-3-Clause
+  min_ansible_version: 2.1
+  # OSX is not supported
+  platforms:
+    - name: macOS
+      versions:
+        - any
+        - all
+  galaxy_tags:
+    - apple
+    - apps
+    - appstore
+    - baremetal
+    - brew
+    - configure
+    - dev
+    - development
+    - homebrew
+    - mac
+    - macbook
+    - macos
+    - mas
+    - setup
+    - terminal
+    - tools
+    - workstation
+
+...
